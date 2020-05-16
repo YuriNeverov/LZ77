@@ -25,14 +25,15 @@ void lz77_encoder::open_output_file(char *output_file) {
 
 void lz77_encoder::read_block() {
     uint size = input.readsome(reinterpret_cast<char *>(block_buffer), BUFFER_SIZE);
-    for (int i = 0; i < size; i++) {
+    for (uint i = 0; i < size; i++) {
         buffer.enqueue(block_buffer[i]);
     }
 }
 
 void lz77_encoder::encode(char *input_file, char *output_file, uint speed, std::string type) {
     if (type != "TNA1" && type != "TNA2") {
-        throw std::invalid_argument("Type should be TNA1 or TNA2!");
+        std::cerr << "Type should be TNA1 or TNA2!";
+        return;
     }
 
     open_input_file(input_file);
@@ -136,7 +137,7 @@ std::pair<ushort, ushort> lz77_encoder::findMatching() {
 }
 
 void lz77_encoder::shift_buffer(uint shift) {
-    if (buffer.size() < shift) {
+    if ((uint)buffer.size() < shift) {
         read_block();
     }
 

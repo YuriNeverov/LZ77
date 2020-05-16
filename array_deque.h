@@ -7,6 +7,12 @@ typedef unsigned int uint;
 
 class array_deque {
 public:
+    array_deque() {
+        length = 2, num = 0;
+        elements = new uchar[2];
+        tail = 0, head = 0;
+    }
+
     //insert in begin
     void push(uchar element);
 
@@ -57,7 +63,7 @@ private:
         return x;
     }
 
-    int length = 2, num = 0;
-    uchar *elements = new uchar[2];
-    int tail = 0, head = 0;
+    int length, num;
+    uchar *elements;
+    int tail, head;
 };

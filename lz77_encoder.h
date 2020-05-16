@@ -13,6 +13,10 @@ typedef unsigned short ushort;
 
 class lz77_encoder {
 public:
+    lz77_encoder() {
+        block_buffer = new uchar[BUFFER_SIZE];
+    }
+
     void open_input_file(char *input_file);
 
     void open_output_file(char *output_file);
@@ -31,13 +35,13 @@ public:
     }
 
 private:
-    const ushort BUFFER_SIZE = 4 * 1024;
+    const static ushort BUFFER_SIZE = 4 * 1024;
     uint WINDOW_SIZE;
 
     std::ifstream input;
     std::ofstream output;
     array_deque window, buffer;
-    uchar *block_buffer = new uchar[BUFFER_SIZE];
+    uchar *block_buffer;
     ushort buffer_size_processing;
     uint file_size;
     uint *hash;
