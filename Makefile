@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-c -Wall
+CFLAGS=-c -Wall -std=c++0x
 LDFLAGS=
 SOURCES=main.cpp array_deque.cpp lz77_encoder.cpp ByteOperations.cpp LZ77Decoder.cpp sha1.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
