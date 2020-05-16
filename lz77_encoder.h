@@ -35,7 +35,7 @@ public:
     }
 
 private:
-    const ushort BUFFER_SIZE = 4 * 1024;
+    const static ushort BUFFER_SIZE = 4 * 1024;
     uint WINDOW_SIZE;
 
     std::ifstream input;
