@@ -4,6 +4,7 @@
 #include <cerrno>
 #include <cstring>
 #include <climits>
+#include <csignal>
 #include "LZ77Decoder.h"
 #include "lz77_encoder.h"
 
