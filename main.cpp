@@ -9,6 +9,13 @@
 
 uint compression_power = 50;
 
+enum class Mode {
+    ENCODING,
+    DECODING
+};
+
+Mode mode;
+
 void printUsage() {
     std::cerr << "Usage:\n";
     std::cerr << "lz77.exe --encode [input file] [output file] [compression power = 50]\n";
@@ -62,6 +69,7 @@ bool hasDecodingErrors(int decoderExitCode) {
 }
 
 void performEncoding(char* input_file, char* output_file) {
+    mode = Mode::ENCODING;
     lz77_encoder lz_encoder;
     std::cout << "Encoding started with compression power " << compression_power << ".\n";
 
@@ -78,12 +86,23 @@ void performEncoding(char* input_file, char* output_file) {
 }
 
 bool performDecoding(char* input_file, char* output_file) {
+    mode = Mode::DECODING;
     int decoderExitCode = LZ77Decoder::decode(input_file, output_file);
 
     return hasDecodingErrors(decoderExitCode);
 }
 
+void sigSEGVHandler(int _) {
+    if (mode == Mode::DECODING) {
+        std::cerr << "Segmentation fault while decoding. Wrong file to decode.\n";
+    }
+    signal(SIGSEGV, SIG_DFL);
+    exit(3);
+}
+
 int main(int argc, char *argv[]) {
+    signal(SIGSEGV, sigSEGVHandler);
+
     if (!checkArguments(argc, argv)) {
         return 1;
     }
