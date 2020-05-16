@@ -1,5 +1,20 @@
 #include "sha1.h"
 
+static constexpr uint32_t k[] = {
+        0x5A827999,
+        0x6ED9EBA1,
+        0x8F1BBCDC,
+        0xCA62C1D6
+};
+
+static constexpr uint32_t init_h[] = {
+        0x67452301,
+        0xEFCDAB89,
+        0x98BADCFE,
+        0x10325476,
+        0xC3D2E1F0
+};
+
 uint32_t sha1::f(uint32_t t, uint32_t B, uint32_t C, uint32_t D) {
     if (t < 20) {
         return (B & C) | ((~B) & D);

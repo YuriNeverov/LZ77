@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <cerrno>
 #include <cstring>
+#include <climits>
 #include "LZ77Decoder.h"
 #include "lz77_encoder.h"
 
