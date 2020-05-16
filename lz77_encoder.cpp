@@ -32,7 +32,8 @@ void lz77_encoder::read_block() {
 
 void lz77_encoder::encode(char *input_file, char *output_file, uint speed, std::string type) {
     if (type != "TNA1" && type != "TNA2") {
-        throw std::invalid_argument("Type should be TNA1 or TNA2!");
+        std::cerr << "Type should be TNA1 or TNA2!";
+        return;
     }
 
     open_input_file(input_file);
