@@ -2,3 +2,5 @@ Usage:
 lz77.exe --encode [input file] [output file] [compression power = 50]
 Or:
 lz77.exe --decode [input file] [output file]
+Or:
+lz77.exe --test [directory] [compression power = 50]

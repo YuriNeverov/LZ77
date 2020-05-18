@@ -7,6 +7,7 @@
 #include <csignal>
 #include "LZ77Decoder.h"
 #include "lz77_encoder.h"
+#include "files.h"
 
 uint compression_power = 50;
 
@@ -22,9 +23,32 @@ void printUsage() {
     std::cerr << "lz77.exe --encode [input file] [output file] [compression power = 50]\n";
     std::cerr << "Or:\n";
     std::cerr << "lz77.exe --decode [input file] [output file]\n";
+    std::cerr << "Or:\n";
+    std::cerr << "lz77.exe --test [directory] [compression power = 50]\n";
+}
+
+bool applyCompressionPower(char * number) {
+    long compression = strtol(number, nullptr, 10);
+    if ((errno == ERANGE && (compression == LONG_MAX || compression == LONG_MIN)) || (errno != 0 && compression == 0) || compression > 100 || compression < 1) {
+        std::cerr << "Wrong compression power argument: should be a number between 1 and 100.\n";
+        printUsage();
+        return false;
+    }
+    compression_power = compression;
+    return true;
 }
 
 bool checkArguments(int argsCount, char *argv[]) {
+    if (argsCount > 1 && (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "help") == 0)) {
+        printUsage();
+        return true;
+    }
+
+    if (argsCount > 1 && strcmp(argv[1], "--test") == 0) {
+        if (argsCount == 3) return true;
+        if (argsCount == 4) return applyCompressionPower(argv[3]);
+    }
+
     if (argsCount < 4) {
         std::cerr << "Not enough arguments.\n";
         printUsage();
@@ -38,13 +62,7 @@ bool checkArguments(int argsCount, char *argv[]) {
     }
 
     if (strcmp(argv[1], "--encode") == 0 && argsCount == 5) {
-        long compression = strtol(argv[4], nullptr, 10);
-        if ((errno == ERANGE && (compression == LONG_MAX || compression == LONG_MIN)) || (errno != 0 && compression == 0) || compression > 100 || compression < 1) {
-            std::cerr << "Wrong compression power argument: should be a number between 1 and 100.\n";
-            printUsage();
-            return false;
-        }
-        compression_power = compression;
+        return applyCompressionPower(argv[4]);
     }
 
     return true;
@@ -101,12 +119,47 @@ void sigSEGVHandler(int _) {
     exit(3);
 }
 
+char* addSuffix(std::string& str, std::string suffix) {
+    char * suffixed = new char[str.size() + suffix.size() + 1];
+    std::copy(str.begin(), str.end(), suffixed);
+    std::copy(suffix.begin(), suffix.end(), suffixed + str.size());
+    suffixed[str.size() + suffix.size()] = '\0';
+    return suffixed;
+}
+
+void testDirectory(const char * name) {
+    std::vector<std::string> filenames;
+    readDirectory(name, filenames);
+    for (std::string file : filenames) {
+        if (file == "." || file == "..") continue;
+        file = std::string(name) + '\\' + file;
+        std::cout << "Testing " << file << "...\n";
+        char * filename = addSuffix(file, "");
+        char * filename_encoded = addSuffix(file, "_encoded");
+        char * filename_decoded = addSuffix(file, "_decoded");
+        performEncoding(filename, filename_encoded);
+        if (performDecoding(filename_encoded, filename_decoded)) {
+            std::cout << "Test failed: decoding fell\n";
+        }
+        if (!compareFiles(filename_decoded, filename)) {
+            std::cerr << "Test failed: files are not equal: \"" << std::string(filename_decoded) << "\" and \""
+                    << std::string(filename) << "\". \n";
+        }
+        std::cout << "Test " << file << " passed!\n\n\n";
+        delete[] filename;
+        delete[] filename_encoded;
+        delete[] filename_decoded;
+    }
+    std::cout << "Tests passed!\n";
+}
+
 int main(int argc, char *argv[]) {
     signal(SIGSEGV, sigSEGVHandler);
-
     if (!checkArguments(argc, argv)) {
         return 1;
     }
+
+    if (strcmp(argv[1], "--test") == 0) testDirectory(argv[2]);
 
     if (strcmp(argv[1], "--encode") == 0) performEncoding(argv[2], argv[3]);
 
