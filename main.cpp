@@ -133,32 +133,54 @@ void testDirectory(const char * name) {
     readDirectory(name, filenames);
     for (std::string file : filenames) {
         int i = 1;
+        bool errFlag = false;
         do {
             i++;
-            if (i > 100) break;
+
+            if (errFlag) break;
+            errFlag = true;
+
             if (crashTest) compression_power = i;
+
             if (file == "." || file == "..") continue;
+
             std::string filenm = std::string(name) + '\\' + file;
-            std::cout << "Testing " << filenm << "...\n";
+            std::cout << "Testing " << filenm << "..." << std::endl;
+
             char *filename = addSuffix(filenm, "");
             char *filename_encoded = addSuffix(filenm, "_encoded");
             char *filename_decoded = addSuffix(filenm, "_decoded");
+
             performEncoding(filename, filename_encoded);
-            std::cout << "Encoded!\n";
+
             if (performDecoding(filename_encoded, filename_decoded)) {
-                std::cout << "Test failed: decoding fell\n";
+                std::cerr << "Test failed: decoding fell." << std::endl;
+                return;
             }
-            std::cout << "Decoded!\n";
+
+            std::cout << "Decoding finished." << std::endl;
+
             if (!compareFiles(filename_decoded, filename)) {
-                std::cerr << "Test failed: files are not equal: \"" << std::string(filename_decoded) << "\" and \""
-                          << std::string(filename) << "\". \n";
+                std::cerr << "Test failed: files are not equal: \""
+                          << std::string(filename_decoded)
+                          << "\" and \""
+                          << std::string(filename)
+                          << "\"." << std::endl;
+                return;
             }
-            std::cout << "Test " << filenm << " passed!\n\n\n";
+            std::cout << "Test " << filenm << " passed! Compression: "
+                      << std::fixed << std::setprecision(2)
+                      << ((double)fileSize(filename_encoded))/fileSize(filename) * 100
+                      << "%" << std::endl << std::endl << std::endl;
+
             delete[] filename;
+
             remove(filename_encoded);
             delete[] filename_encoded;
+
             remove(filename_decoded);
             delete[] filename_decoded;
+            errFlag = false;
         } while (i <= crashTest * 100);
     }
     std::cout << "Tests passed!\n";

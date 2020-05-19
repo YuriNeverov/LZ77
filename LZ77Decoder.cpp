@@ -38,6 +38,7 @@ int LZ77Decoder::decode(const std::string &input_path, const std::string &output
 
     in >> format >> window_buffer_size;
     in.ignore();
+    window_buffer_size *= 2;
     window_buffer_size += min_window_buffer_size;
 
     // TNA1 or TNA2

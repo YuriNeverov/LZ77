@@ -14,4 +14,6 @@ void readDirectory(const std::string& name, std::vector<std::string>& v);
 
 bool compareFiles(const std::string& left, const std::string& right);
 
+int64_t fileSize(const std::string& name);
+
 #endif //LZ77_FILES_H

@@ -51,3 +51,10 @@ bool compareFiles(const std::string& left, const std::string& right) {
     return true;
 }
 
+int64_t fileSize(const std::string& name) {
+    std::ifstream file(name, std::ios::binary);
+    file.seekg(0, std::ios::end);
+    int64_t res = file.tellg();
+    file.close();
+    return res;
+}
