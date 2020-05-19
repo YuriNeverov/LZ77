@@ -10,6 +10,7 @@
 #include "files.h"
 
 uint compression_power = 50;
+bool crashTest = false;
 
 enum class Mode {
     ENCODING,
@@ -45,7 +46,7 @@ bool checkArguments(int argsCount, char *argv[]) {
     }
 
     if (argsCount > 1 && strcmp(argv[1], "--test") == 0) {
-        if (argsCount == 3) return true;
+        if (argsCount == 3) return crashTest = true;
         if (argsCount == 4) return applyCompressionPower(argv[3]);
     }
 
@@ -119,7 +120,7 @@ void sigSEGVHandler(int _) {
     exit(3);
 }
 
-char* addSuffix(std::string& str, std::string suffix) {
+char* addSuffix(std::string str, std::string suffix) {
     char * suffixed = new char[str.size() + suffix.size() + 1];
     std::copy(str.begin(), str.end(), suffixed);
     std::copy(suffix.begin(), suffix.end(), suffixed + str.size());
@@ -131,24 +132,34 @@ void testDirectory(const char * name) {
     std::vector<std::string> filenames;
     readDirectory(name, filenames);
     for (std::string file : filenames) {
-        if (file == "." || file == "..") continue;
-        file = std::string(name) + '\\' + file;
-        std::cout << "Testing " << file << "...\n";
-        char * filename = addSuffix(file, "");
-        char * filename_encoded = addSuffix(file, "_encoded");
-        char * filename_decoded = addSuffix(file, "_decoded");
-        performEncoding(filename, filename_encoded);
-        if (performDecoding(filename_encoded, filename_decoded)) {
-            std::cout << "Test failed: decoding fell\n";
-        }
-        if (!compareFiles(filename_decoded, filename)) {
-            std::cerr << "Test failed: files are not equal: \"" << std::string(filename_decoded) << "\" and \""
-                    << std::string(filename) << "\". \n";
-        }
-        std::cout << "Test " << file << " passed!\n\n\n";
-        delete[] filename;
-        delete[] filename_encoded;
-        delete[] filename_decoded;
+        int i = 1;
+        do {
+            i++;
+            if (i > 100) break;
+            if (crashTest) compression_power = i;
+            if (file == "." || file == "..") continue;
+            std::string filenm = std::string(name) + '\\' + file;
+            std::cout << "Testing " << filenm << "...\n";
+            char *filename = addSuffix(filenm, "");
+            char *filename_encoded = addSuffix(filenm, "_encoded");
+            char *filename_decoded = addSuffix(filenm, "_decoded");
+            performEncoding(filename, filename_encoded);
+            std::cout << "Encoded!\n";
+            if (performDecoding(filename_encoded, filename_decoded)) {
+                std::cout << "Test failed: decoding fell\n";
+            }
+            std::cout << "Decoded!\n";
+            if (!compareFiles(filename_decoded, filename)) {
+                std::cerr << "Test failed: files are not equal: \"" << std::string(filename_decoded) << "\" and \""
+                          << std::string(filename) << "\". \n";
+            }
+            std::cout << "Test " << filenm << " passed!\n\n\n";
+            delete[] filename;
+            remove(filename_encoded);
+            delete[] filename_encoded;
+            remove(filename_decoded);
+            delete[] filename_decoded;
+        } while (i <= crashTest * 100);
     }
     std::cout << "Tests passed!\n";
 }
