@@ -35,7 +35,7 @@ void lz77_encoder::encode(char *input_file, char *output_file, uint speed, std::
         std::cerr << "Type should be TNA1 or TNA2!";
         return;
     }
-
+    
     open_input_file(input_file);
     open_output_file(output_file);
 
@@ -54,11 +54,22 @@ void lz77_encoder::encode(char *input_file, char *output_file, uint speed, std::
     }
     output << " ";
 
-    while (!buffer.empty()) {
+    while (pos < file_size) {
         std::pair<ushort, ushort> res = findMatching();
+        uint safe = pos;
 
-        pos + res.second == file_size ? shift_buffer(res.second) : shift_buffer(res.second + 1);
-        pos += res.second + 1;
+        if (pos + res.second > file_size - 1) {
+            res.second = file_size - pos - 1;
+        }
+
+//        pos + res.second > file_size ? shift_buffer(res.second) : shift_buffer(res.second + 1);
+//        pos += res.second + 1;
+        shift_buffer(res.second + 1);
+        if (res.second + pos >= file_size) {
+            std::cout << safe << " " << pos << " " << file_size << " " << res.first << " " << res.second << std::endl;
+//            res.second -= (ushort)(pos - file_size);
+//            pos = file_size + 1;
+        }
 
         if (is_tna1) {
             output << (uchar) res.first << (uchar) res.second;
@@ -69,9 +80,16 @@ void lz77_encoder::encode(char *input_file, char *output_file, uint speed, std::
             ushort_to_bytes(res.second, bytes);
             output.write(bytes, 2);
         }
-        if (pos <= file_size) {
+
+//        if (pos < file_size) {
             output << window.peek();
-        }
+//        }
+
+//        if (pos > file_size) {
+//            break;
+//        }
+
+        pos += res.second + 1;
     }
 
     delete[] bytes;
@@ -117,10 +135,10 @@ std::pair<ushort, ushort> lz77_encoder::findMatching() {
 
     for (ushort i = buffer_size_processing + 1; i < size; i++) {
         tmp_val = pi[i - 1];
-        while (tmp_val > 0 && window[i - offset] != get(tmp_val)) {
+        while (tmp_val > 0 && tmp_val != buffer_size_processing && window[i - offset] != get(tmp_val)) {
             tmp_val = pi[tmp_val - 1];
         }
-        if (window[i - offset] == get(tmp_val)) {
+        if (tmp_val != buffer_size_processing &&  window[i - offset] == get(tmp_val)) {
             tmp_val++;
         }
         pi[i] = tmp_val;
@@ -169,7 +187,7 @@ void lz77_encoder::shift_buffer(uint shift) {
 }
 
 uchar lz77_encoder::get(uint k) {
-    if (k >= buffer_size_processing) {
+    if (k > buffer_size_processing) {
         return window[k - buffer_size_processing - 1];
     } else {
         return buffer[k];
